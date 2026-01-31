@@ -16,8 +16,12 @@ enum class MsgType : uint8_t {
 
 enum class OpCode : uint16_t {
   OPEN = 1,
+  CLOSE = 2,
+  DEPOSIT = 3,
+  WITHDRAW = 4,
   QUERY_BALANCE = 6,
   MONITOR_REGISTER = 5,
+  TRANSFER = 7,
   CALLBACK_UPDATE = 100
 };
 
@@ -32,6 +36,7 @@ enum class Status : uint16_t {
   ERR_AUTH = 2,
   ERR_NOT_FOUND = 3,
   ERR_CURRENCY = 4,
+  ERR_INSUFFICIENT_FUNDS = 5,
   ERR_PASSWORD_FORMAT = 6
 };
 

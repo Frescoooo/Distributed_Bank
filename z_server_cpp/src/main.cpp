@@ -4,8 +4,10 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-// g++/MinGW 不需要 #pragma comment(lib,...)
-// #pragma comment(lib, "ws2_32.lib")
+// MSVC需要链接ws2_32.lib，MinGW/g++不需要
+#ifdef _MSC_VER
+#pragma comment(lib, "ws2_32.lib")
+#endif
 
 #include <algorithm>   // for std::remove_if
 #include <chrono>
@@ -35,6 +37,29 @@ struct DedupEntry {
   std::vector<uint8_t> replyBytes;
   std::chrono::steady_clock::time_point expireAt;
 };
+
+static void sendUpdateCallback(SOCKET s, const std::vector<MonitorEntry>& monitors, uint16_t updateTypeOp,
+                               int32_t accNo, uint16_t curU16, double bal, const std::string& info) {
+  for (const auto& m : monitors) {
+    proto::Message cb;
+    cb.h.magic = proto::MAGIC;
+    cb.h.version = proto::VERSION;
+    cb.h.msgType = (uint8_t)proto::MsgType::Callback;
+    cb.h.opCode = (uint16_t)proto::OpCode::CALLBACK_UPDATE;
+    cb.h.flags = 0;
+    cb.h.status = 0;
+    cb.h.requestId = 0;
+
+    proto::putU16(cb.body, updateTypeOp); // updateType
+    proto::putI32(cb.body, accNo);
+    proto::putU16(cb.body, curU16);
+    proto::putDouble(cb.body, bal);
+    proto::putString(cb.body, info);
+    cb.h.bodyLen = (uint32_t)cb.body.size();
+    auto bytes = proto::encode(cb);
+    sendto(s, (const char*)bytes.data(), (int)bytes.size(), 0, (sockaddr*)&m.addr, sizeof(m.addr));
+  }
+}
 
 static void usage() {
   std::cout << "Usage: udp_server.exe --port 9000 --lossReq 0.0 --lossRep 0.0\n";
@@ -173,25 +198,114 @@ int main(int argc, char** argv) {
           proto::putDouble(rep.body, bal);
 
           // callback: OPEN event
-          for (const auto& m : monitors) {
-            proto::Message cb;
-            cb.h.magic = proto::MAGIC;
-            cb.h.version = proto::VERSION;
-            cb.h.msgType = (uint8_t)proto::MsgType::Callback;
-            cb.h.opCode = (uint16_t)proto::OpCode::CALLBACK_UPDATE;
-            cb.h.flags = 0;
-            cb.h.status = 0;
-            cb.h.requestId = 0;
-
-            proto::putU16(cb.body, (uint16_t)proto::OpCode::OPEN); // updateType
-            proto::putI32(cb.body, accNo);
-            proto::putU16(cb.body, curU16);
-            proto::putDouble(cb.body, bal);
-            proto::putString(cb.body, "OPEN by " + name);
-            cb.h.bodyLen = (uint32_t)cb.body.size();
-            auto bytes = proto::encode(cb);
-            sendto(s, (const char*)bytes.data(), (int)bytes.size(), 0, (sockaddr*)&m.addr, sizeof(m.addr));
-          }
+          sendUpdateCallback(s, monitors, (uint16_t)proto::OpCode::OPEN, accNo, curU16, bal, "OPEN by " + name);
+        }
+      }
+    } else if (req.h.opCode == (uint16_t)proto::OpCode::CLOSE) {
+      size_t off = 0;
+      std::string name, pw;
+      int32_t accNo;
+      if (!proto::getString(req.body, off, name) ||
+          !proto::getI32(req.body, off, accNo) ||
+          !proto::getPassword16(req.body, off, pw)) {
+        rep.h.status = (uint16_t)proto::Status::ERR_BAD_REQUEST;
+      } else {
+        proto::Status err;
+        if (!bank.closeAccount(name, accNo, pw, err)) {
+          rep.h.status = (uint16_t)err;
+        } else {
+          proto::putString(rep.body, "account closed");
+          // callback: CLOSE event (balance after close is still readable from stored record)
+          const Account* a = bank.getAccount(accNo);
+          uint16_t curU16 = a ? (uint16_t)a->currency : 0;
+          double bal = a ? a->balance : 0.0;
+          sendUpdateCallback(s, monitors, (uint16_t)proto::OpCode::CLOSE, accNo, curU16, bal, "CLOSE by " + name);
+        }
+      }
+    } else if (req.h.opCode == (uint16_t)proto::OpCode::DEPOSIT) {
+      size_t off = 0;
+      std::string name, pw;
+      int32_t accNo;
+      uint16_t curU16;
+      double amount;
+      std::cout << "[server] DEPOSIT body size=" << req.body.size() << std::endl;
+      std::cout.flush();
+      bool ok1 = proto::getString(req.body, off, name);
+      std::cout << "[server]   getString: " << (ok1 ? "ok" : "fail") << " off=" << off << " name=" << name << std::endl;
+      std::cout.flush();
+      bool ok2 = ok1 && proto::getI32(req.body, off, accNo);
+      std::cout << "[server]   getI32: " << (ok2 ? "ok" : "fail") << " off=" << off << " accNo=" << accNo << std::endl;
+      std::cout.flush();
+      bool ok3 = ok2 && proto::getPassword16(req.body, off, pw);
+      std::cout << "[server]   getPassword16: " << (ok3 ? "ok" : "fail") << " off=" << off << " pw=" << pw << std::endl;
+      std::cout.flush();
+      bool ok4 = ok3 && proto::getU16(req.body, off, curU16);
+      std::cout << "[server]   getU16: " << (ok4 ? "ok" : "fail") << " off=" << off << " cur=" << curU16 << std::endl;
+      std::cout.flush();
+      bool ok5 = ok4 && proto::getDouble(req.body, off, amount);
+      std::cout << "[server]   getDouble: " << (ok5 ? "ok" : "fail") << " off=" << off << " amount=" << amount << std::endl;
+      std::cout.flush();
+      if (!ok5) {
+        rep.h.status = (uint16_t)proto::Status::ERR_BAD_REQUEST;
+        std::cout << "[server]   => ERR_BAD_REQUEST (parse failed)" << std::endl;
+        std::cout.flush();
+      } else {
+        double newBal; proto::Status err;
+        if (!bank.deposit(name, accNo, pw, (proto::Currency)curU16, amount, newBal, err)) {
+          rep.h.status = (uint16_t)err;
+        } else {
+          proto::putDouble(rep.body, newBal);
+          sendUpdateCallback(s, monitors, (uint16_t)proto::OpCode::DEPOSIT, accNo, curU16, newBal,
+                             "DEPOSIT " + std::to_string(amount) + " by " + name);
+        }
+      }
+    } else if (req.h.opCode == (uint16_t)proto::OpCode::WITHDRAW) {
+      size_t off = 0;
+      std::string name, pw;
+      int32_t accNo;
+      uint16_t curU16;
+      double amount;
+      if (!proto::getString(req.body, off, name) ||
+          !proto::getI32(req.body, off, accNo) ||
+          !proto::getPassword16(req.body, off, pw) ||
+          !proto::getU16(req.body, off, curU16) ||
+          !proto::getDouble(req.body, off, amount)) {
+        rep.h.status = (uint16_t)proto::Status::ERR_BAD_REQUEST;
+      } else {
+        double newBal; proto::Status err;
+        if (!bank.withdraw(name, accNo, pw, (proto::Currency)curU16, amount, newBal, err)) {
+          rep.h.status = (uint16_t)err;
+        } else {
+          proto::putDouble(rep.body, newBal);
+          sendUpdateCallback(s, monitors, (uint16_t)proto::OpCode::WITHDRAW, accNo, curU16, newBal,
+                             "WITHDRAW " + std::to_string(amount) + " by " + name);
+        }
+      }
+    } else if (req.h.opCode == (uint16_t)proto::OpCode::TRANSFER) {
+      // extra non-idempotent op: transfer between two accounts (same currency), authenticated by "from" account owner
+      size_t off = 0;
+      std::string name, pw;
+      int32_t fromAcc, toAcc;
+      uint16_t curU16;
+      double amount;
+      if (!proto::getString(req.body, off, name) ||
+          !proto::getI32(req.body, off, fromAcc) ||
+          !proto::getPassword16(req.body, off, pw) ||
+          !proto::getI32(req.body, off, toAcc) ||
+          !proto::getU16(req.body, off, curU16) ||
+          !proto::getDouble(req.body, off, amount)) {
+        rep.h.status = (uint16_t)proto::Status::ERR_BAD_REQUEST;
+      } else {
+        double fromBal, toBal; proto::Status err;
+        if (!bank.transfer(name, fromAcc, pw, toAcc, (proto::Currency)curU16, amount, fromBal, toBal, err)) {
+          rep.h.status = (uint16_t)err;
+        } else {
+          proto::putDouble(rep.body, fromBal);
+          proto::putDouble(rep.body, toBal);
+          sendUpdateCallback(s, monitors, (uint16_t)proto::OpCode::TRANSFER, fromAcc, curU16, fromBal,
+                             "TRANSFER out " + std::to_string(amount) + " to " + std::to_string(toAcc) + " by " + name);
+          sendUpdateCallback(s, monitors, (uint16_t)proto::OpCode::TRANSFER, toAcc, curU16, toBal,
+                             "TRANSFER in " + std::to_string(amount) + " from " + std::to_string(fromAcc));
         }
       }
     } else if (req.h.opCode == (uint16_t)proto::OpCode::QUERY_BALANCE) {
