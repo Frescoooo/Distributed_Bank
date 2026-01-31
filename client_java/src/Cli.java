@@ -216,6 +216,13 @@ public class Cli {
                             } catch (NumberFormatException e) {
                                 System.out.println("Invalid input: initial balance must be a number. Returned to menu.");
                                 break;
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("Input error: " + e.getMessage());
+                                System.out.print("Try again? (y/n): ");
+                                String retryChoice = sc.nextLine().trim().toLowerCase();
+                                if (!retryChoice.equals("y")) {
+                                    break; // Exit do-while, return to main menu
+                                }
                             } catch (CommunicationException e) {
                                 System.out.println("Communication error: " + e.getMessage());
                                 System.out.print("Retry operation? (y/n): ");
@@ -227,20 +234,15 @@ public class Cli {
                                 System.out.println("Network error: No reply from server (UDP packet loss/wrong port/server not running/firewall). Returned to menu.");
                                 System.out.println("Details: " + e.getMessage());
                                 break;
-                            } catch (IllegalArgumentException e) {
-                                System.out.println("Input error: " + e.getMessage());
-                                System.out.print("Try again? (y/n): ");
-                                String retryChoice = sc.nextLine().trim().toLowerCase();
-                                if (!retryChoice.equals("y")) {
-                                    break; // Exit do-while, return to main menu
-                                }
                             } catch (Exception e) {
                                 System.out.println("OPEN error: " + e.getMessage());
                                 break;
                             } finally {
-                                if (pw != null) Arrays.fill(pw, ' ');
-                                if (pwConfirm != null) Arrays.fill(pwConfirm, ' ');
                             }
+                            // } finally {
+                            //     if (pw != null) Arrays.fill(pw, ' ');
+                            //     if (pwConfirm != null) Arrays.fill(pwConfirm, ' ');
+                            // }
                         } while (!success);
                         System.out.print("Press Enter to continue...");
                         sc.nextLine();

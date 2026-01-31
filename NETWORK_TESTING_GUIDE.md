@@ -78,7 +78,7 @@ compile.bat
 
 **基本连接：**
 ```cmd
-run.bat --server 192.168.1.100 --port 9000
+run.bat --server 10.91.186.52 --port 9000
 ```
 
 **完整参数示例：**
