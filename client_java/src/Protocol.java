@@ -130,4 +130,18 @@ public class Protocol {
             default: return "Unknown error status=" + s;
         }
     }
+
+    public static String opCodeToString(int op) {
+        switch (op) {
+            case OP_OPEN: return "OPEN";
+            case OP_CLOSE: return "CLOSE";
+            case OP_DEPOSIT: return "DEPOSIT";
+            case OP_WITHDRAW: return "WITHDRAW";
+            case OP_MONITOR_REGISTER: return "MONITOR_REGISTER";
+            case OP_QUERY_BALANCE: return "QUERY_BALANCE";
+            case OP_TRANSFER: return "TRANSFER";
+            case OP_CALLBACK_UPDATE: return "CALLBACK_UPDATE";
+            default: return "UNKNOWN(" + op + ")";
+        }
+    }
 }

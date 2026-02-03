@@ -257,6 +257,13 @@ public class Cli {
                             } catch (NumberFormatException e) {
                                 System.out.println("Invalid input: initial balance must be a number. Returned to menu.");
                                 break;
+                            } catch (IllegalArgumentException e) {
+                                System.out.println("Input error: " + e.getMessage());
+                                System.out.print("Try again? (y/n): ");
+                                String retryChoice = sc.nextLine().trim().toLowerCase();
+                                if (!retryChoice.equals("y")) {
+                                    break; // Exit do-while, return to main menu
+                                }
                             } catch (CommunicationException e) {
                                 System.out.println("\n[NETWORK ERROR] " + e.getMessage());
                                 System.out.print("Retry this operation? (y/n): ");
@@ -268,19 +275,9 @@ public class Cli {
                                 System.out.println("\n[NETWORK ERROR] No reply from server (UDP packet loss / wrong port / server not running / firewall).");
                                 System.out.println("Details: " + e.getMessage());
                                 break;
-                            } catch (IllegalArgumentException e) {
-                                System.out.println("\n[INPUT ERROR] " + e.getMessage());
-                                System.out.print("Try again? (y/n): ");
-                                String retryChoice = sc.nextLine().trim().toLowerCase();
-                                if (!retryChoice.equals("y")) {
-                                    break; // Exit do-while, return to main menu
-                                }
                             } catch (Exception e) {
                                 System.out.println("\n[UNEXPECTED ERROR] OPEN failed: " + e.getMessage());
                                 break;
-                            } finally {
-                                if (pw != null) Arrays.fill(pw, ' ');
-                                if (pwConfirm != null) Arrays.fill(pwConfirm, ' ');
                             }
                         } while (!success);
                         System.out.print("\nPress Enter to return to menu...");
