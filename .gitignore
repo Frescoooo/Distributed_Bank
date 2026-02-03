@@ -1,0 +1,40 @@
+# Compiled class files
+*.class
+
+# Compiled executables
+*.exe
+*.out
+
+# Build output directories
+out/
+build/
+bin/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# C++ build files
+*.o
+*.obj
+*.dll
+*.so
+*.a
+
+# Java build files
+*.jar
+*.war

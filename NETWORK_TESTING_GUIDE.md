@@ -7,12 +7,15 @@
 #### 步骤 1：获取你的 IP 地址
 
 **Windows:**
-```cmd
+
+```
 ipconfig
 ```
+
 找到 "IPv4 地址"，例如：`192.168.1.100`
 
 **或者使用：**
+
 ```cmd
 ipconfig | findstr IPv4
 ```
@@ -22,10 +25,12 @@ ipconfig | findstr IPv4
 确保 Windows 防火墙允许 Java 程序通过 UDP 端口 9000（或你选择的端口）。
 
 **临时关闭防火墙测试（仅测试时）：**
+
 - 控制面板 → Windows Defender 防火墙 → 启用或关闭 Windows Defender 防火墙
 - 或者添加防火墙规则允许 Java
 
 **添加防火墙规则：**
+
 1. 控制面板 → Windows Defender 防火墙 → 高级设置
 2. 入站规则 → 新建规则
 3. 选择"端口" → UDP → 特定本地端口：9000
@@ -45,16 +50,19 @@ run.bat --port 9000
 ```
 
 或者指定丢包率（用于测试）：
+
 ```cmd
 run.bat --port 9000 --lossReq 0.1 --lossRep 0.1
 ```
 
 **参数说明：**
+
 - `--port 9000`: 服务器监听端口（默认 9000）
 - `--lossReq 0.1`: 请求丢包率 10%（可选，用于测试）
 - `--lossRep 0.1`: 回复丢包率 10%（可选，用于测试）
 
 服务器启动后会显示：
+
 ```
 [server] UDP listening on port 9000 lossReq=0.0 lossRep=0.0
 ```
@@ -77,16 +85,19 @@ compile.bat
 #### 步骤 3：运行客户端并连接到服务器
 
 **基本连接：**
+
 ```cmd
 run.bat --server 192.168.1.100 --port 9000
 ```
 
 **完整参数示例：**
+
 ```cmd
 run.bat --server 192.168.1.100 --port 9000 --sem atmost --timeout 500 --retry 5
 ```
 
 **参数说明：**
+
 - `--server 192.168.1.100`: 服务器 IP 地址（**替换为你的实际 IP**）
 - `--port 9000`: 服务器端口（必须与服务器一致）
 - `--sem atmost`: 语义模式
@@ -128,6 +139,7 @@ run.bat --server 192.168.1.100 --port 9000 --sem atmost --timeout 500 --retry 5
 ### 问题 1：客户端无法连接
 
 **检查清单：**
+
 1. ✅ 服务器是否正在运行？
 2. ✅ IP 地址是否正确？（使用 `ipconfig` 确认）
 3. ✅ 端口号是否一致？
@@ -136,6 +148,7 @@ run.bat --server 192.168.1.100 --port 9000 --sem atmost --timeout 500 --retry 5
 
 **测试连接：**
 在客户端电脑上测试能否 ping 通服务器：
+
 ```cmd
 ping 192.168.1.100
 ```
@@ -143,6 +156,7 @@ ping 192.168.1.100
 ### 问题 2：防火墙阻止连接
 
 **Windows 防火墙快速测试：**
+
 1. 临时关闭防火墙测试
 2. 如果关闭防火墙后能连接，说明是防火墙问题
 3. 添加防火墙规则（见上方步骤）
@@ -150,6 +164,7 @@ ping 192.168.1.100
 ### 问题 3：不在同一网络
 
 如果两台电脑不在同一局域网：
+
 - 需要配置路由器端口转发
 - 或者使用 VPN/内网穿透工具
 - 或者使用公网 IP（需要网络配置）
@@ -157,11 +172,13 @@ ping 192.168.1.100
 ### 问题 4：查看服务器日志
 
 服务器会显示：
+
 - 接收到的请求
 - 发送的回复
 - 错误信息
 
 客户端会显示：
+
 - 发送的请求
 - 接收到的回复
 - 超时和重试信息
@@ -171,12 +188,14 @@ ping 192.168.1.100
 ## 快速测试命令
 
 ### 服务器端（默认配置）
+
 ```cmd
 cd server_java
 run.bat
 ```
 
 ### 客户端（连接到 192.168.1.100）
+
 ```cmd
 cd client_java
 run.bat --server 192.168.1.100
@@ -194,11 +213,13 @@ run.bat --server 192.168.1.100
 ```
 
 服务器运行：
+
 ```cmd
 run.bat --port 9000
 ```
 
 客户端运行：
+
 ```cmd
 run.bat --server 192.168.1.100 --port 9000
 ```
@@ -208,11 +229,13 @@ run.bat --server 192.168.1.100 --port 9000
 如果 9000 端口被占用，可以改用其他端口：
 
 服务器：
+
 ```cmd
 run.bat --port 9999
 ```
 
 客户端：
+
 ```cmd
 run.bat --server 192.168.1.100 --port 9999
 ```
@@ -231,12 +254,14 @@ run.bat --server 192.168.1.100 --port 9999
 ## 成功标志
 
 **服务器端：**
+
 ```
 [server] UDP listening on port 9000 lossReq=0.0 lossRep=0.0
 [server] received request op=1 from 192.168.1.101:54321
 ```
 
 **客户端：**
+
 ```
 [client] server=192.168.1.100:9000 sem=atmost timeout=500 retry=5
 [client] sending op=1 bodyLen=... totalLen=...
