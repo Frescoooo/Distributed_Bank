@@ -12,8 +12,8 @@ public class Paillier {
     private final SecureRandom random;
 
     public Paillier(int bitLength) {
-        if (bitLength < 128) {
-            throw new IllegalArgumentException("bitLength must be at least 128");
+        if (bitLength < 2048) {
+            throw new IllegalArgumentException("bitLength must be at least 2048");
         }
         this.random = new SecureRandom();
         BigInteger p = BigInteger.probablePrime(bitLength / 2, random);
@@ -62,13 +62,15 @@ public class Paillier {
     }
 
     private BigInteger randomCoprime() {
-        BigInteger candidate;
-        do {
-            candidate = new BigInteger(n.bitLength(), random);
-        } while (candidate.signum() == 0
-                || candidate.compareTo(n) >= 0
-                || !candidate.gcd(n).equals(ONE));
-        return candidate;
+        for (int attempt = 0; attempt < 128; attempt++) {
+            BigInteger candidate = new BigInteger(n.bitLength(), random);
+            if (candidate.signum() > 0
+                    && candidate.compareTo(n) < 0
+                    && candidate.gcd(n).equals(ONE)) {
+                return candidate;
+            }
+        }
+        throw new IllegalStateException("Failed to generate coprime random value");
     }
 
     private BigInteger lFunction(BigInteger value) {
