@@ -9,7 +9,7 @@ echo ========================================
 if not exist "out" mkdir out
 
 echo Compiling source files...
-javac -source 8 -target 8 -d out src\Protocol.java src\Bank.java src\Server.java
+javac -source 8 -target 8 -d out src\*.java
 
 if %errorlevel% neq 0 (
     echo Compilation failed!

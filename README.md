@@ -33,6 +33,27 @@ This project implements a distributed banking system using UDP protocol, consist
 - **请求去重** - at-most-once模式下自动过滤重复请求
 - **回调机制** - 支持多客户端同时监控账户更新
 
+## 同态加密隐私投票演示 (Homomorphic Voting Demo)
+
+新增一个独立的密码学演示：使用 **Paillier 加密** 实现加法同态的隐私投票统计。
+
+- **传统计票**：逐张解密选票后再求和，计票人能看到每一票。
+- **同态计票**：对密文直接求和（密文相乘），最后只解密一次得到总票数。
+
+### 运行演示 (Run the Demo)
+```bash
+cd server_java
+
+# Windows
+compile.bat
+cd out
+java HomomorphicVotingDemo
+
+# Linux/macOS
+javac -source 8 -target 8 -d out src/Paillier.java src/HomomorphicVotingDemo.java
+java -cp out HomomorphicVotingDemo
+```
+
 ## 协议设计 (Protocol Design)
 
 ### 消息头格式 (Header Format - 24 bytes)
