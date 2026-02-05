@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HomomorphicVotingDemo {
@@ -31,14 +32,6 @@ public class HomomorphicVotingDemo {
     }
 
     private static String formatVotes(int[] votes) {
-        StringBuilder builder = new StringBuilder("[");
-        for (int i = 0; i < votes.length; i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            builder.append(votes[i]);
-        }
-        builder.append("]");
-        return builder.toString();
+        return Arrays.toString(votes);
     }
 }
