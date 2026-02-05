@@ -2,6 +2,8 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 public class Paillier {
+    private static final int MIN_BIT_LENGTH = 2048;
+    private static final int MAX_COPRIME_ATTEMPTS = 128;
     private static final BigInteger ONE = BigInteger.ONE;
 
     private final BigInteger n;
@@ -12,8 +14,8 @@ public class Paillier {
     private final SecureRandom random;
 
     public Paillier(int bitLength) {
-        if (bitLength < 2048) {
-            throw new IllegalArgumentException("bitLength must be at least 2048");
+        if (bitLength < MIN_BIT_LENGTH) {
+            throw new IllegalArgumentException("bitLength must be at least " + MIN_BIT_LENGTH);
         }
         this.random = new SecureRandom();
         BigInteger p = BigInteger.probablePrime(bitLength / 2, random);
@@ -62,7 +64,7 @@ public class Paillier {
     }
 
     private BigInteger randomCoprime() {
-        for (int attempt = 0; attempt < 128; attempt++) {
+        for (int attempt = 0; attempt < MAX_COPRIME_ATTEMPTS; attempt++) {
             BigInteger candidate = new BigInteger(n.bitLength(), random);
             if (candidate.signum() > 0
                     && candidate.compareTo(n) < 0

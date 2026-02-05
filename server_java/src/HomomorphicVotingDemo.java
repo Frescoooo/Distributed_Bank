@@ -3,10 +3,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomomorphicVotingDemo {
+    private static final int KEY_SIZE_BITS = 2048;
     private static final int[] VOTES = {1, 0, 1, 1, 0, 1, 0, 1};
 
     public static void main(String[] args) {
-        Paillier paillier = new Paillier(2048);
+        Paillier paillier = new Paillier(KEY_SIZE_BITS);
         List<BigInteger> ciphertexts = new ArrayList<>();
         for (int vote : VOTES) {
             ciphertexts.add(paillier.encrypt(BigInteger.valueOf(vote)));
