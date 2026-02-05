@@ -5,6 +5,7 @@ public class Paillier {
     private static final int MIN_BIT_LENGTH = 2048;
     private static final int MAX_COPRIME_ATTEMPTS = 128;
     private static final BigInteger ONE = BigInteger.ONE;
+    private static final BigInteger CIPHERTEXT_IDENTITY = BigInteger.ONE;
 
     private final BigInteger n;
     private final BigInteger nSquared;
@@ -52,7 +53,7 @@ public class Paillier {
     }
 
     public BigInteger sumCiphertexts(Iterable<BigInteger> ciphertexts) {
-        BigInteger result = ONE;
+        BigInteger result = CIPHERTEXT_IDENTITY;
         for (BigInteger ciphertext : ciphertexts) {
             result = result.multiply(ciphertext).mod(nSquared);
         }
@@ -65,10 +66,10 @@ public class Paillier {
 
     private BigInteger randomCoprime() {
         for (int attempt = 0; attempt < MAX_COPRIME_ATTEMPTS; attempt++) {
-            BigInteger candidate = new BigInteger(n.bitLength(), random);
-            if (candidate.signum() > 0
-                    && candidate.compareTo(n) < 0
-                    && candidate.gcd(n).equals(ONE)) {
+            BigInteger candidate = new BigInteger(n.bitLength(), random)
+                    .mod(n.subtract(ONE))
+                    .add(ONE);
+            if (candidate.gcd(n).equals(ONE)) {
                 return candidate;
             }
         }

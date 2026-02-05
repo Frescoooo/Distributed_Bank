@@ -44,10 +44,9 @@ This project implements a distributed banking system using UDP protocol, consist
 ```bash
 cd server_java
 
-# Windows
-compile.bat
-cd out
-java HomomorphicVotingDemo
+# Windows (CMD/PowerShell)
+javac -source 8 -target 8 -d out src\Paillier.java src\HomomorphicVotingDemo.java
+java -cp out HomomorphicVotingDemo
 
 # Linux/macOS
 javac -source 8 -target 8 -d out src/Paillier.java src/HomomorphicVotingDemo.java
