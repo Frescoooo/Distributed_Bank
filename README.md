@@ -37,7 +37,7 @@ This project implements a distributed banking system using UDP protocol, consist
 
 新增一个独立的密码学演示：使用 **Paillier 加密** 实现加法同态的隐私投票统计。
 
-- **传统计票**：逐张解密选票后再求和，计票人能看到每一票。
+- **传统计票**：逐个解密选票后再求和，计票人能看到每一票。
 - **同态计票**：对密文直接求和（密文相乘），最后只解密一次得到总票数。
 
 ### 运行演示 (Run the Demo)

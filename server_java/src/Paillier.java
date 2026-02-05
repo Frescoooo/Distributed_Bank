@@ -50,7 +50,7 @@ public class Paillier {
     }
 
     public BigInteger sumCiphertexts(Iterable<BigInteger> ciphertexts) {
-        BigInteger result = encrypt(BigInteger.ZERO);
+        BigInteger result = ONE;
         for (BigInteger ciphertext : ciphertexts) {
             result = result.multiply(ciphertext).mod(nSquared);
         }
