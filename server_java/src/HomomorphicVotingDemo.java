@@ -14,12 +14,12 @@ public class HomomorphicVotingDemo {
             ciphertexts.add(paillier.encrypt(BigInteger.valueOf(vote)));
         }
 
-        int traditionalSum = 0;
-        List<Integer> decryptedVotes = new ArrayList<>();
+        BigInteger traditionalSum = BigInteger.ZERO;
+        List<BigInteger> decryptedVotes = new ArrayList<>();
         for (BigInteger ciphertext : ciphertexts) {
-            int vote = paillier.decrypt(ciphertext).intValue();
+            BigInteger vote = paillier.decrypt(ciphertext);
             decryptedVotes.add(vote);
-            traditionalSum += vote;
+            traditionalSum = traditionalSum.add(vote);
         }
 
         BigInteger aggregatedCiphertext = paillier.sumCiphertexts(ciphertexts);

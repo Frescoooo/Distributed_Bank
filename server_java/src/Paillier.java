@@ -34,7 +34,7 @@ public class Paillier {
 
     public BigInteger encrypt(BigInteger message) {
         if (message.signum() < 0 || message.compareTo(n) >= 0) {
-            throw new IllegalArgumentException("Message must be in Z_n");
+            throw new IllegalArgumentException("Message must be non-negative and less than modulus n");
         }
         BigInteger r = randomCoprime();
         BigInteger c1 = g.modPow(message, nSquared);
@@ -66,10 +66,10 @@ public class Paillier {
 
     private BigInteger randomCoprime() {
         for (int attempt = 0; attempt < MAX_COPRIME_ATTEMPTS; attempt++) {
-            BigInteger candidate = new BigInteger(n.bitLength(), random)
-                    .mod(n.subtract(ONE))
-                    .add(ONE);
-            if (candidate.gcd(n).equals(ONE)) {
+            BigInteger candidate = new BigInteger(n.bitLength(), random);
+            if (candidate.signum() > 0
+                    && candidate.compareTo(n) < 0
+                    && candidate.gcd(n).equals(ONE)) {
                 return candidate;
             }
         }
