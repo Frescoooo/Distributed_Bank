@@ -6,7 +6,7 @@ public class HomomorphicVotingDemo {
     private static final int[] VOTES = {1, 0, 1, 1, 0, 1, 0, 1};
 
     public static void main(String[] args) {
-        Paillier paillier = new Paillier(512);
+        Paillier paillier = new Paillier(2048);
         List<BigInteger> ciphertexts = new ArrayList<>();
         for (int vote : VOTES) {
             ciphertexts.add(paillier.encrypt(BigInteger.valueOf(vote)));

@@ -17,7 +17,10 @@ public class Paillier {
         }
         this.random = new SecureRandom();
         BigInteger p = BigInteger.probablePrime(bitLength / 2, random);
-        BigInteger q = BigInteger.probablePrime(bitLength / 2, random);
+        BigInteger q;
+        do {
+            q = BigInteger.probablePrime(bitLength / 2, random);
+        } while (p.equals(q));
         this.n = p.multiply(q);
         this.nSquared = n.multiply(n);
         this.g = n.add(ONE);
@@ -47,7 +50,7 @@ public class Paillier {
     }
 
     public BigInteger sumCiphertexts(Iterable<BigInteger> ciphertexts) {
-        BigInteger result = ONE;
+        BigInteger result = encrypt(BigInteger.ZERO);
         for (BigInteger ciphertext : ciphertexts) {
             result = result.multiply(ciphertext).mod(nSquared);
         }
